@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0a4e49">
+  <title>SYNCIFY | Quotation Studio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-brand"><img src="assets/syncify-logo.png" alt="SYNCIFY Smart Home Integrations"><small>QUOTATION STUDIO</small></div>
+    <div class="header-actions">
+      <span id="saveStatus" class="save-status">Saved on this device</span>
+      <button id="newQuote" class="button subtle">New quote</button>
+      <button id="saveDraft" class="button subtle">Save draft</button>
+      <button id="printQuote" class="button primary">Download PDF / Print</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="editor">
+      <div class="editor-topline"><div><span class="eyebrow">CREATE & CUSTOMIZE</span><h1>Build a better quote.</h1></div><span class="step-pill">01 / 03</span></div>
+      <p class="intro">Enter the details once. The client-ready proposal updates as you type.</p>
+
+      <section class="panel">
+        <div class="panel-heading"><span class="icon">01</span><div><h2>Quote details</h2><p>Who, what, and when</p></div></div>
+        <div class="grid two">
+          <label>Quotation number<input id="quoteNumber" placeholder="SYN-2026-001"></label>
+          <label>Date<input id="quoteDate" type="date"></label>
+          <label>Valid until<input id="validUntil" type="date"></label>
+          <label>Currency<select id="currency"><option value="EGP">EGP (ج.م)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></label>
+        </div>
+        <div class="grid two">
+          <label>Client name<input id="clientName" placeholder="Mr. Walaa"></label>
+          <label>Client phone / email<input id="clientContact" placeholder="Optional"></label>
+        </div>
+        <label>Project name<input id="projectName" placeholder="Apartment Smart Home Automation"></label>
+        <label>Project location<input id="projectLocation" placeholder="New Cairo, Egypt"></label>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading"><span class="icon">02</span><div><h2>Company identity</h2><p>Your authentic branding and contact details</p></div></div>
+        <div class="logo-row"><div id="logoThumb" class="logo-thumb">S</div><div><label for="logoInput" class="button subtle upload-label">Upload logo</label><input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden><button id="removeLogo" class="text-button">Remove</button><p>PNG, JPG, WebP or SVG. Max 1 MB.</p></div></div>
+        <div class="grid two"><label>Company name<input id="companyName" value="SYNCIFY"></label><label>Phone<input id="companyPhone" placeholder="Your company phone"></label></div>
+        <label>Email / website<input id="companyWeb" placeholder="hello@syncify.com"></label>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading"><span class="icon">03</span><div><h2>Products & services</h2><p>Group line items by room or work area</p></div></div>
+        <div id="sectionsEditor"></div>
+        <button id="addSection" class="button outline full">+ Add room / section</button>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading"><span class="icon">04</span><div><h2>Discount & totals</h2><p>Calculated automatically</p></div></div>
+        <div class="grid two"><label>Discount type<select id="discountType"><option value="none">No discount</option><option value="percent">Percentage (%)</option><option value="fixed">Fixed amount</option></select></label><label>Discount value<input id="discountValue" type="number" min="0" step="0.01" inputmode="decimal" value="0"></label></div>
+        <p class="helper">Discount applies to included items. Optional sections are shown separately.</p>
+        <div id="editorTotals" class="editor-totals"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading"><span class="icon">05</span><div><h2>Terms & notes</h2><p>Write only what applies to this quote</p></div></div>
+        <label>Scope / client note<textarea id="clientNote" rows="3" placeholder="What the system will do for this client"></textarea></label>
+        <label>Payment terms<textarea id="paymentTerms" rows="2" placeholder="For example: 50% advance, 50% upon handover"></textarea></label>
+        <label>Warranty & exclusions<textarea id="warrantyTerms" rows="2" placeholder="State your actual warranty and exclusions"></textarea></label>
+        <label>Additional notes<textarea id="extraTerms" rows="2" placeholder="Installation timing, assumptions, etc."></textarea></label>
+      </section>
+
+      <section class="panel utility-panel"><h2>Draft tools</h2><p>Drafts stay in this browser. Export a backup before switching devices.</p><div class="utility-buttons"><button id="exportJson" class="button subtle">Export JSON</button><label for="importJson" class="button subtle upload-label">Import JSON</label><input id="importJson" type="file" accept="application/json,.json" hidden><button id="loadSample" class="button subtle">Load BOQ example</button></div><div id="draftList"></div></section>
+    </aside>
+
+    <section class="preview-side"><div class="preview-top"><div><span class="eyebrow">LIVE PREVIEW</span><strong>Client-facing quotation</strong></div><span class="paper-label">A4 layout</span></div><article id="quotePreview" class="paper"></article><div class="preview-hint">Use “Download PDF / Print”, then choose “Save as PDF” in your browser.</div></section>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
