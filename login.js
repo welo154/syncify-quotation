@@ -1,0 +1,8 @@
+import {db,friendly} from './backend.js';
+const $=id=>document.getElementById(id);let recovery=location.hash.includes('type=recovery')||location.hash.includes('type=invite');
+function showRecovery(){recovery=true;$('loginForm').hidden=true;$('passwordForm').hidden=false;$('authMessage').textContent='Choose a password with at least 12 characters.';}
+if(recovery)showRecovery();
+db.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')showRecovery();});
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('signIn').disabled=true;$('authMessage').textContent='Signing in…';try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;location.assign('index.html');}catch(err){$('authMessage').textContent=friendly(err);}finally{$('signIn').disabled=false;}});
+$('forgot').addEventListener('click',async()=>{if(!$('email').checkValidity()||!$('email').value){$('email').reportValidity();return;}$('forgot').disabled=true;try{const redirectTo=new URL('login.html',location.href).href;const {error}=await db.auth.resetPasswordForEmail($('email').value.trim(),{redirectTo});if(error)throw error;$('authMessage').textContent='If the account exists, a password reset email will be sent.';}catch(e){$('authMessage').textContent=friendly(e);}finally{$('forgot').disabled=false;}});
+$('passwordForm').addEventListener('submit',async e=>{e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;try{const {error}=await db.auth.updateUser({password:$('newPassword').value});if(error)throw error;location.assign('index.html');}catch(err){$('authMessage').textContent=friendly(err);}finally{button.disabled=false;}});

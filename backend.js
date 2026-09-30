@@ -1,0 +1,9 @@
+import {createClient} from './vendor/supabase.js';
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js';
+export const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+export function friendly(error){const msg=error?.message||String(error);if(/does not exist|schema cache|PGRST205/i.test(msg))return 'Database setup is not complete. Run supabase/001_initial.sql in the Supabase SQL Editor.';if(error?.code==='23505')return 'This code or imported quotation already exists.';return msg;}
+export async function requireMember(){const {data:{user},error}=await db.auth.getUser();if(error||!user){location.replace('login.html');throw Error('Please sign in.')}const {data:member,error:me}=await db.from('app_members').select('role,active').eq('user_id',user.id).maybeSingle();if(me)throw Error(friendly(me));if(!member?.active)throw Error('Your account is not approved. Ask the administrator to add your user ID to app_members.');return {...member,user};}
+export async function catalog(admin=false){let rows=[],start=0;for(;;){let query=db.from('products').select('*').order('code').range(start,start+499);if(!admin)query=query.eq('active',true);const {data,error}=await query;if(error)throw Error(friendly(error));rows.push(...data);if(data.length<500)break;start+=500;}return rows;}
+export async function rpc(name,args){const {data,error}=await db.rpc(name,args);if(error)throw Error(friendly(error));return data;}
+export async function listQuotes(){const {data,error}=await db.from('quotations').select('id,quotation_number,details,status,version,updated_at,total,currency,owner_id').order('updated_at',{ascending:false}).limit(100);if(error)throw Error(friendly(error));return data;}
+export async function logout(){const {error}=await db.auth.signOut();if(error)throw Error(friendly(error));location.replace('login.html');}

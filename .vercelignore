@@ -1,0 +1,9 @@
+node_modules
+supabase
+tests
+README.md
+SETUP.md
+VERIFICATION.md
+server.mjs
+package-lock.json
+.git
