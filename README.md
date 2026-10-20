@@ -1,13 +1,51 @@
-# SYNCIFY Quotation Studio — Supabase edition
+# SYNCIFY Studio
 
-Your existing quotation layout, connected to a shared product catalog and cloud quotation storage.
+Staff quotations and invoices for SYNCIFY smart home projects. Next.js on Vercel with Neon Postgres and Auth.js.
 
-**Start with [SETUP.md](SETUP.md).**
+## Features
 
-Features: Supabase login, protected admin catalog, editable unique product codes, searchable product selection, automatic price/code population, custom service lines, optional sections, discounts, immutable quotation snapshots, cloud save, version conflict detection, finalized quotation locking, JSON migration and A4 printing.
+- Staff login; admins create and manage users
+- Shared quote and invoice history with created/edited-by audit trail
+- Permanent installation section (% of products; complimentary option with original price shown)
+- Internal markup % (staff-only control; client sees marked-up prices)
+- Discount warning when above 7% (staff confirmation required)
+- Room-prefixed item names on the client document
+- Money formatting without trailing `.00`
+- Convert a quotation into an invoice
 
-Run locally with `node server.mjs`, then open http://localhost:3000. Initialize Supabase using the SQL files before signing in. Public configuration is already in `config.js`.
+## Setup
 
-The app is packaged for static hosting on Vercel. It has not been deployed to your Vercel or Supabase account.
+1. Create a Neon Postgres database and copy the connection string.
+2. Copy `.env.example` to `.env` and fill in:
 
-The Supabase browser library is prebundled in vendor/. For development, `npm install`, then `npm run vendor` rebuilds it and `npm run test:db` runs the database checks. No npm install is needed for normal use of the packaged app.
+```
+DATABASE_URL=...
+AUTH_SECRET=...   # openssl rand -base64 32
+ADMIN_EMAIL=admin@syncify.com
+ADMIN_PASSWORD=your-secure-password
+NEXTAUTH_URL=http://localhost:3000
+```
+
+3. Install and initialize:
+
+```bash
+npm install
+npx prisma db push
+npm run db:seed
+npm run dev
+```
+
+4. Open http://localhost:3000 and sign in with the admin credentials.
+
+## Deploy on Vercel
+
+1. Import the GitHub repo.
+2. Add the same env vars (set `NEXTAUTH_URL` to your Vercel URL).
+3. Deploy, then run seed once:
+
+```bash
+npx prisma db push
+npm run db:seed
+```
+
+Or use the Vercel CLI / Neon integrate button so `DATABASE_URL` is injected automatically.

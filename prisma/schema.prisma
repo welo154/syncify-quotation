@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("staff")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  quotesCreated    Quote[]        @relation("QuoteCreatedBy")
+  quotesUpdated    Quote[]        @relation("QuoteUpdatedBy")
+  quoteEvents      QuoteEvent[]
+  invoicesCreated  Invoice[]      @relation("InvoiceCreatedBy")
+  invoicesUpdated  Invoice[]      @relation("InvoiceUpdatedBy")
+  invoiceEvents    InvoiceEvent[]
+}
+
+model Quote {
+  id                    String   @id @default(cuid())
+  quoteNumber           String
+  quoteDate             String
+  validUntil            String
+  currency              String   @default("EGP")
+  clientName            String   @default("")
+  clientContact         String   @default("")
+  projectName           String   @default("")
+  projectLocation       String   @default("")
+  companyName           String   @default("SYNCIFY")
+  companyPhone          String   @default("")
+  companyWeb            String   @default("")
+  logo                  String   @default("/syncify-logo.png")
+  discountType          String   @default("none")
+  discountValue         Float    @default(0)
+  discountAcknowledged  Boolean  @default(false)
+  markupPercent         Float    @default(0)
+  installationPercent   Float    @default(0)
+  installationFree      Boolean  @default(false)
+  clientNote            String   @default("")
+  paymentTerms          String   @default("")
+  warrantyTerms         String   @default("")
+  extraTerms            String   @default("")
+  sections              Json
+  status                String   @default("draft")
+  createdById           String
+  updatedById           String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  createdBy User         @relation("QuoteCreatedBy", fields: [createdById], references: [id])
+  updatedBy User         @relation("QuoteUpdatedBy", fields: [updatedById], references: [id])
+  events    QuoteEvent[]
+  invoices  Invoice[]
+
+  @@index([createdAt])
+  @@index([clientName])
+}
+
+model QuoteEvent {
+  id      String   @id @default(cuid())
+  quoteId String
+  userId  String
+  action  String
+  summary String?
+  at      DateTime @default(now())
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@index([quoteId, at])
+}
+
+model Invoice {
+  id                    String   @id @default(cuid())
+  invoiceNumber         String
+  invoiceDate           String
+  dueDate               String
+  currency              String   @default("EGP")
+  clientName            String   @default("")
+  clientContact         String   @default("")
+  projectName           String   @default("")
+  projectLocation       String   @default("")
+  companyName           String   @default("SYNCIFY")
+  companyPhone          String   @default("")
+  companyWeb            String   @default("")
+  logo                  String   @default("/syncify-logo.png")
+  discountType          String   @default("none")
+  discountValue         Float    @default(0)
+  discountAcknowledged  Boolean  @default(false)
+  markupPercent         Float    @default(0)
+  installationPercent   Float    @default(0)
+  installationFree      Boolean  @default(false)
+  clientNote            String   @default("")
+  paymentTerms          String   @default("")
+  warrantyTerms         String   @default("")
+  extraTerms            String   @default("")
+  sections              Json
+  status                String   @default("draft")
+  sourceQuoteId         String?
+  createdById           String
+  updatedById           String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  sourceQuote Quote?         @relation(fields: [sourceQuoteId], references: [id], onDelete: SetNull)
+  createdBy   User           @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User           @relation("InvoiceUpdatedBy", fields: [updatedById], references: [id])
+  events      InvoiceEvent[]
+
+  @@index([createdAt])
+  @@index([clientName])
+}
+
+model InvoiceEvent {
+  id        String   @id @default(cuid())
+  invoiceId String
+  userId    String
+  action    String
+  summary   String?
+  at        DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([invoiceId, at])
+}

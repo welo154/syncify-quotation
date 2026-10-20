@@ -1,0 +1,56 @@
+"use client";
+
+import {
+  recordInvoicePrintAction,
+  updateInvoiceAction,
+} from "@/app/actions/invoices";
+import { DocumentEditor } from "@/components/DocumentEditor";
+import type { InvoicePayload } from "@/lib/types";
+
+export function InvoiceEditorClient({
+  id,
+  initial,
+  meta,
+  events,
+}: {
+  id: string;
+  initial: InvoicePayload;
+  meta: {
+    createdBy: string;
+    updatedBy: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  events: {
+    id: string;
+    action: string;
+    summary: string | null;
+    at: string;
+    user: { name: string };
+  }[];
+}) {
+  return (
+    <DocumentEditor
+      kind="invoice"
+      documentId={id}
+      initial={initial}
+      meta={meta}
+      events={events}
+      numberField="invoiceNumber"
+      dateField="invoiceDate"
+      secondaryDateField="dueDate"
+      numberLabel="Invoice number"
+      dateLabel="Invoice date"
+      secondaryDateLabel="Due date"
+      totalLabel="AMOUNT DUE"
+      previewKind="invoice"
+      statusOptions={[
+        { value: "draft", label: "Draft" },
+        { value: "sent", label: "Sent" },
+        { value: "paid", label: "Paid" },
+      ]}
+      onSave={(payload) => updateInvoiceAction(id, payload as InvoicePayload)}
+      onPrintRecord={() => recordInvoicePrintAction(id)}
+    />
+  );
+}
