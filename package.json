@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:migrate-legacy": "node scripts/migrate-legacy-data.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -27,6 +27,9 @@ export function AppHeader({
         <Link href="/invoices" className="nav-link">
           Invoices
         </Link>
+        <Link href="/products" className="nav-link">
+          Products
+        </Link>
         {user.role === "admin" && (
           <Link href="/admin/users" className="nav-link">
             Users

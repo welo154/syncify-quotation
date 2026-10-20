@@ -140,3 +140,21 @@ model InvoiceEvent {
   @@index([invoiceId, at])
   @@schema("studio")
 }
+
+model Product {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  category    String   @default("")
+  description String   @default("")
+  unit        String   @default("piece")
+  unitPrice   Float    @default(0)
+  currency    String   @default("EGP")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([category])
+  @@schema("studio")
+}
