@@ -1,6 +1,6 @@
 # SYNCIFY Studio
 
-Staff quotations and invoices for SYNCIFY smart home projects. Next.js on Vercel with Neon Postgres and Auth.js.
+Staff quotations and invoices for SYNCIFY smart home projects. Next.js on Vercel with **Supabase Postgres** and Auth.js.
 
 ## Features
 
@@ -15,12 +15,12 @@ Staff quotations and invoices for SYNCIFY smart home projects. Next.js on Vercel
 
 ## Setup
 
-1. Create a Neon Postgres database and copy the connection string.
+1. In [Supabase](https://supabase.com/dashboard) → your project → **Settings → Database**, copy the **URI** connection string (and database password).
 2. Copy `.env.example` to `.env` and fill in:
 
 ```
-DATABASE_URL=...
-AUTH_SECRET=...   # openssl rand -base64 32
+DATABASE_URL=...   # Supabase Database URI (session pooler or direct)
+AUTH_SECRET=...    # openssl rand -base64 32
 ADMIN_EMAIL=admin@syncify.com
 ADMIN_PASSWORD=your-secure-password
 NEXTAUTH_URL=http://localhost:3000
@@ -39,13 +39,11 @@ npm run dev
 
 ## Deploy on Vercel
 
-1. Import the GitHub repo.
-2. Add the same env vars (set `NEXTAUTH_URL` to your Vercel URL).
-3. Deploy, then run seed once:
+1. Import the GitHub repo `welo154/syncify-quotation`.
+2. Add the same env vars (set `NEXTAUTH_URL` to your Vercel URL, e.g. `https://syncify-quotation.vercel.app`).
+3. Deploy, then from this folder run once against production DB:
 
 ```bash
 npx prisma db push
 npm run db:seed
 ```
-
-Or use the Vercel CLI / Neon integrate button so `DATABASE_URL` is injected automatically.
