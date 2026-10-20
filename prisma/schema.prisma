@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["studio"]
 }
 
 model User {
@@ -17,44 +18,46 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  quotesCreated    Quote[]        @relation("QuoteCreatedBy")
-  quotesUpdated    Quote[]        @relation("QuoteUpdatedBy")
-  quoteEvents      QuoteEvent[]
-  invoicesCreated  Invoice[]      @relation("InvoiceCreatedBy")
-  invoicesUpdated  Invoice[]      @relation("InvoiceUpdatedBy")
-  invoiceEvents    InvoiceEvent[]
+  quotesCreated   Quote[]        @relation("QuoteCreatedBy")
+  quotesUpdated   Quote[]        @relation("QuoteUpdatedBy")
+  quoteEvents     QuoteEvent[]
+  invoicesCreated Invoice[]      @relation("InvoiceCreatedBy")
+  invoicesUpdated Invoice[]      @relation("InvoiceUpdatedBy")
+  invoiceEvents   InvoiceEvent[]
+
+  @@schema("studio")
 }
 
 model Quote {
-  id                    String   @id @default(cuid())
-  quoteNumber           String
-  quoteDate             String
-  validUntil            String
-  currency              String   @default("EGP")
-  clientName            String   @default("")
-  clientContact         String   @default("")
-  projectName           String   @default("")
-  projectLocation       String   @default("")
-  companyName           String   @default("SYNCIFY")
-  companyPhone          String   @default("")
-  companyWeb            String   @default("")
-  logo                  String   @default("/syncify-logo.png")
-  discountType          String   @default("none")
-  discountValue         Float    @default(0)
-  discountAcknowledged  Boolean  @default(false)
-  markupPercent         Float    @default(0)
-  installationPercent   Float    @default(0)
-  installationFree      Boolean  @default(false)
-  clientNote            String   @default("")
-  paymentTerms          String   @default("")
-  warrantyTerms         String   @default("")
-  extraTerms            String   @default("")
-  sections              Json
-  status                String   @default("draft")
-  createdById           String
-  updatedById           String
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  quoteNumber          String
+  quoteDate            String
+  validUntil           String
+  currency             String   @default("EGP")
+  clientName           String   @default("")
+  clientContact        String   @default("")
+  projectName          String   @default("")
+  projectLocation      String   @default("")
+  companyName          String   @default("SYNCIFY")
+  companyPhone         String   @default("")
+  companyWeb           String   @default("")
+  logo                 String   @default("/syncify-logo.png")
+  discountType         String   @default("none")
+  discountValue        Float    @default(0)
+  discountAcknowledged Boolean  @default(false)
+  markupPercent        Float    @default(0)
+  installationPercent  Float    @default(0)
+  installationFree     Boolean  @default(false)
+  clientNote           String   @default("")
+  paymentTerms         String   @default("")
+  warrantyTerms        String   @default("")
+  extraTerms           String   @default("")
+  sections             Json
+  status               String   @default("draft")
+  createdById          String
+  updatedById          String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   createdBy User         @relation("QuoteCreatedBy", fields: [createdById], references: [id])
   updatedBy User         @relation("QuoteUpdatedBy", fields: [updatedById], references: [id])
@@ -63,6 +66,7 @@ model Quote {
 
   @@index([createdAt])
   @@index([clientName])
+  @@schema("studio")
 }
 
 model QuoteEvent {
@@ -77,39 +81,40 @@ model QuoteEvent {
   user  User  @relation(fields: [userId], references: [id])
 
   @@index([quoteId, at])
+  @@schema("studio")
 }
 
 model Invoice {
-  id                    String   @id @default(cuid())
-  invoiceNumber         String
-  invoiceDate           String
-  dueDate               String
-  currency              String   @default("EGP")
-  clientName            String   @default("")
-  clientContact         String   @default("")
-  projectName           String   @default("")
-  projectLocation       String   @default("")
-  companyName           String   @default("SYNCIFY")
-  companyPhone          String   @default("")
-  companyWeb            String   @default("")
-  logo                  String   @default("/syncify-logo.png")
-  discountType          String   @default("none")
-  discountValue         Float    @default(0)
-  discountAcknowledged  Boolean  @default(false)
-  markupPercent         Float    @default(0)
-  installationPercent   Float    @default(0)
-  installationFree      Boolean  @default(false)
-  clientNote            String   @default("")
-  paymentTerms          String   @default("")
-  warrantyTerms         String   @default("")
-  extraTerms            String   @default("")
-  sections              Json
-  status                String   @default("draft")
-  sourceQuoteId         String?
-  createdById           String
-  updatedById           String
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  invoiceNumber        String
+  invoiceDate          String
+  dueDate              String
+  currency             String   @default("EGP")
+  clientName           String   @default("")
+  clientContact        String   @default("")
+  projectName          String   @default("")
+  projectLocation      String   @default("")
+  companyName          String   @default("SYNCIFY")
+  companyPhone         String   @default("")
+  companyWeb           String   @default("")
+  logo                 String   @default("/syncify-logo.png")
+  discountType         String   @default("none")
+  discountValue        Float    @default(0)
+  discountAcknowledged Boolean  @default(false)
+  markupPercent        Float    @default(0)
+  installationPercent  Float    @default(0)
+  installationFree     Boolean  @default(false)
+  clientNote           String   @default("")
+  paymentTerms         String   @default("")
+  warrantyTerms        String   @default("")
+  extraTerms           String   @default("")
+  sections             Json
+  status               String   @default("draft")
+  sourceQuoteId        String?
+  createdById          String
+  updatedById          String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   sourceQuote Quote?         @relation(fields: [sourceQuoteId], references: [id], onDelete: SetNull)
   createdBy   User           @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
@@ -118,6 +123,7 @@ model Invoice {
 
   @@index([createdAt])
   @@index([clientName])
+  @@schema("studio")
 }
 
 model InvoiceEvent {
@@ -132,4 +138,5 @@ model InvoiceEvent {
   user    User    @relation(fields: [userId], references: [id])
 
   @@index([invoiceId, at])
+  @@schema("studio")
 }
