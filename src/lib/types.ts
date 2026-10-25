@@ -9,6 +9,20 @@ export type LineItem = {
   qty: number;
   price: number;
   note: string;
+  productId?: string | null;
+  code?: string;
+  unit?: string;
+};
+
+export type CatalogProduct = {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  description: string;
+  unit: string;
+  unitPrice: number;
+  currency: string;
 };
 
 export type Section = {

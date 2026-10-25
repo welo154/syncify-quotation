@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { listCatalogProducts } from "@/app/actions/products";
 import { invoiceRowToPayload } from "@/app/actions/invoices";
 import { AppHeader } from "@/components/AppHeader";
 import { InvoiceEditorClient } from "@/components/InvoiceEditorClient";
@@ -12,18 +13,21 @@ export default async function InvoicePage({
 }) {
   const user = await requireUser();
   const { id } = await params;
-  const invoice = await prisma.invoice.findUnique({
-    where: { id },
-    include: {
-      createdBy: { select: { name: true } },
-      updatedBy: { select: { name: true } },
-      events: {
-        orderBy: { at: "desc" },
-        take: 30,
-        include: { user: { select: { name: true } } },
+  const [invoice, products] = await Promise.all([
+    prisma.invoice.findUnique({
+      where: { id },
+      include: {
+        createdBy: { select: { name: true } },
+        updatedBy: { select: { name: true } },
+        events: {
+          orderBy: { at: "desc" },
+          take: 30,
+          include: { user: { select: { name: true } } },
+        },
       },
-    },
-  });
+    }),
+    listCatalogProducts(),
+  ]);
   if (!invoice) notFound();
 
   const initial = invoiceRowToPayload(invoice);
@@ -47,6 +51,7 @@ export default async function InvoicePage({
           at: e.at.toISOString(),
           user: e.user,
         }))}
+        products={products}
       />
     </>
   );

@@ -172,7 +172,7 @@ export function DocumentPreview({
                   <tr>
                     <td>
                       <span className="item-name">
-                        On-site installation and programming ({doc.installationPercent}%)
+                        On-site installation and programming
                       </span>
                     </td>
                     <td>1</td>

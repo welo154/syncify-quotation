@@ -5,7 +5,7 @@ import { DocumentPreview } from "@/components/DocumentPreview";
 import { ensureInstallationSection } from "@/lib/document";
 import { clientUnitPrice, computeTotals, DISCOUNT_WARN_PERCENT } from "@/lib/totals";
 import { formatMoney, finite, uid } from "@/lib/money";
-import type { DiscountType, DocumentPayload, Section } from "@/lib/types";
+import type { CatalogProduct, DiscountType, DocumentPayload, LineItem, Section } from "@/lib/types";
 
 type EventRow = {
   id: string;
@@ -40,7 +40,35 @@ type Props = {
   onSave: (payload: DocumentPayload & Record<string, unknown>) => Promise<{ error?: string; ok?: boolean }>;
   onPrintRecord: () => Promise<{ error?: string; ok?: boolean }>;
   extraActions?: React.ReactNode;
+  products?: CatalogProduct[];
 };
+
+function blankItem(): LineItem {
+  return {
+    id: uid(),
+    name: "",
+    category: "",
+    qty: 1,
+    price: 0,
+    note: "",
+    productId: null,
+    code: "",
+    unit: "",
+  };
+}
+
+function applyCatalogProduct(item: LineItem, product: CatalogProduct): LineItem {
+  return {
+    ...item,
+    productId: product.id,
+    code: product.code,
+    name: product.name,
+    category: product.category,
+    unit: product.unit,
+    price: finite(product.unitPrice),
+    note: product.description || item.note,
+  };
+}
 
 export function DocumentEditor({
   kind,
@@ -60,6 +88,7 @@ export function DocumentEditor({
   onSave,
   onPrintRecord,
   extraActions,
+  products = [],
 }: Props) {
   const [state, setState] = useState(() =>
     normalizeState(initial as DocumentPayload & Record<string, unknown>)
@@ -69,6 +98,7 @@ export function DocumentEditor({
   const [showDiscountModal, setShowDiscountModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<"save" | "print" | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [catalogQuery, setCatalogQuery] = useState<Record<string, string>>({});
 
   const totals = useMemo(() => computeTotals(state), [state]);
 
@@ -184,6 +214,22 @@ export function DocumentEditor({
   }
 
   const productSections = state.sections.filter((s) => !s.locked);
+  const currencyProducts = products.filter((p) => p.currency === state.currency);
+  const catalogPool = currencyProducts.length > 0 ? currencyProducts : products;
+
+  function catalogChoices(item: LineItem): CatalogProduct[] {
+    const q = (catalogQuery[item.id] || "").trim().toLowerCase();
+    const matches = catalogPool.filter((p) => {
+      if (p.id === item.productId) return true;
+      if (!q) return true;
+      return `${p.code} ${p.name} ${p.category}`.toLowerCase().includes(q);
+    });
+    if (item.productId && !matches.some((p) => p.id === item.productId)) {
+      const selected = products.find((p) => p.id === item.productId);
+      if (selected) return [selected, ...matches];
+    }
+    return matches;
+  }
 
   return (
     <>
@@ -399,8 +445,74 @@ export function DocumentEditor({
                       ×
                     </button>
                   </div>
-                  {s.items.map((i) => (
+                  {s.items.map((i) => {
+                    const choices = catalogChoices(i);
+                    const groups = new Map<string, CatalogProduct[]>();
+                    for (const product of choices) {
+                      const key = product.category.trim() || "Other";
+                      const list = groups.get(key) ?? [];
+                      list.push(product);
+                      groups.set(key, list);
+                    }
+                    const selected = products.find((p) => p.id === i.productId);
+                    return (
                     <div className="item-card" key={i.id}>
+                      <div className="catalog-pick">
+                        <label>
+                          Search catalog
+                          <input
+                            value={catalogQuery[i.id] ?? ""}
+                            placeholder="Code, name, or category"
+                            onChange={(e) =>
+                              setCatalogQuery((prev) => ({
+                                ...prev,
+                                [i.id]: e.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+                        <label>
+                          Catalog product
+                          <select
+                            value={i.productId ?? ""}
+                            onChange={(e) => {
+                              const productId = e.target.value;
+                              updateSection(s.id, (sec) => ({
+                                ...sec,
+                                items: sec.items.map((it) => {
+                                  if (it.id !== i.id) return it;
+                                  if (!productId) {
+                                    return { ...it, productId: null };
+                                  }
+                                  const product = products.find((p) => p.id === productId);
+                                  return product ? applyCatalogProduct(it, product) : it;
+                                }),
+                              }));
+                            }}
+                          >
+                            <option value="">Custom item (enter details below)</option>
+                            {[...groups.entries()].map(([category, list]) => (
+                              <optgroup key={category} label={category}>
+                                {list.map((product) => (
+                                  <option key={product.id} value={product.id}>
+                                    {product.code} — {product.name} —{" "}
+                                    {formatMoney(product.unitPrice, product.currency)}
+                                  </option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </select>
+                          <span className="catalog-hint">
+                            {products.length === 0
+                              ? "No active products in the catalog. Add them on the Products page."
+                              : selected
+                                ? `Base price from catalog: ${formatMoney(selected.unitPrice, selected.currency)}${selected.unit ? ` / ${selected.unit}` : ""}`
+                                : currencyProducts.length === 0
+                                  ? "No products in this currency. Showing the full catalog."
+                                  : "Choosing a product fills the name and base price from the database."}
+                          </span>
+                        </label>
+                      </div>
                       <div className="item-row">
                         <label>
                           Product / service
@@ -505,24 +617,15 @@ export function DocumentEditor({
                         />
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                   <button
                     type="button"
                     className="button outline add-item"
                     onClick={() =>
                       updateSection(s.id, (sec) => ({
                         ...sec,
-                        items: [
-                          ...sec.items,
-                          {
-                            id: uid(),
-                            name: "",
-                            category: "",
-                            qty: 1,
-                            price: 0,
-                            note: "",
-                          },
-                        ],
+                        items: [...sec.items, blankItem()],
                       }))
                     }
                   >
@@ -542,16 +645,7 @@ export function DocumentEditor({
                       id: uid(),
                       name: "New room / section",
                       optional: false,
-                      items: [
-                        {
-                          id: uid(),
-                          name: "",
-                          category: "",
-                          qty: 1,
-                          price: 0,
-                          note: "",
-                        },
-                      ],
+                      items: [blankItem()],
                     },
                     ...state.sections.filter((s) => s.locked),
                   ]),
@@ -567,7 +661,7 @@ export function DocumentEditor({
               <span className="icon">04</span>
               <div>
                 <h2>Installation</h2>
-                <p>Always included — percentage of product subtotal</p>
+                <p>Enter the percentage here. The client document shows the amount only.</p>
               </div>
             </div>
             <div className="grid two">

@@ -5,13 +5,14 @@ import {
   updateInvoiceAction,
 } from "@/app/actions/invoices";
 import { DocumentEditor } from "@/components/DocumentEditor";
-import type { InvoicePayload } from "@/lib/types";
+import type { CatalogProduct, InvoicePayload } from "@/lib/types";
 
 export function InvoiceEditorClient({
   id,
   initial,
   meta,
   events,
+  products,
 }: {
   id: string;
   initial: InvoicePayload;
@@ -28,6 +29,7 @@ export function InvoiceEditorClient({
     at: string;
     user: { name: string };
   }[];
+  products: CatalogProduct[];
 }) {
   return (
     <DocumentEditor
@@ -51,6 +53,7 @@ export function InvoiceEditorClient({
       ]}
       onSave={(payload) => updateInvoiceAction(id, payload as InvoicePayload)}
       onPrintRecord={() => recordInvoicePrintAction(id)}
+      products={products}
     />
   );
 }

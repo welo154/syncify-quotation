@@ -4,6 +4,25 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { finite } from "@/lib/money";
+import type { CatalogProduct } from "@/lib/types";
+
+export async function listCatalogProducts(): Promise<CatalogProduct[]> {
+  await requireUser();
+  return prisma.product.findMany({
+    where: { active: true },
+    orderBy: [{ category: "asc" }, { code: "asc" }],
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      category: true,
+      description: true,
+      unit: true,
+      unitPrice: true,
+      currency: true,
+    },
+  });
+}
 
 function normalizeCode(raw: string): string {
   return raw.trim().toUpperCase().replace(/\s+/g, "-");

@@ -6,13 +6,14 @@ import {
 } from "@/app/actions/quotes";
 import { ConvertToInvoiceButton } from "@/components/ConvertToInvoiceButton";
 import { DocumentEditor } from "@/components/DocumentEditor";
-import type { QuotePayload } from "@/lib/types";
+import type { CatalogProduct, QuotePayload } from "@/lib/types";
 
 export function QuoteEditorClient({
   id,
   initial,
   meta,
   events,
+  products,
 }: {
   id: string;
   initial: QuotePayload;
@@ -29,6 +30,7 @@ export function QuoteEditorClient({
     at: string;
     user: { name: string };
   }[];
+  products: CatalogProduct[];
 }) {
   return (
     <DocumentEditor
@@ -54,6 +56,7 @@ export function QuoteEditorClient({
       onSave={(payload) => updateQuoteAction(id, payload as QuotePayload)}
       onPrintRecord={() => recordQuotePrintAction(id)}
       extraActions={<ConvertToInvoiceButton quoteId={id} />}
+      products={products}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { listCatalogProducts } from "@/app/actions/products";
 import { quoteRowToPayload } from "@/app/actions/quotes";
 import { AppHeader } from "@/components/AppHeader";
 import { QuoteEditorClient } from "@/components/QuoteEditorClient";
@@ -12,18 +13,21 @@ export default async function QuotePage({
 }) {
   const user = await requireUser();
   const { id } = await params;
-  const quote = await prisma.quote.findUnique({
-    where: { id },
-    include: {
-      createdBy: { select: { name: true } },
-      updatedBy: { select: { name: true } },
-      events: {
-        orderBy: { at: "desc" },
-        take: 30,
-        include: { user: { select: { name: true } } },
+  const [quote, products] = await Promise.all([
+    prisma.quote.findUnique({
+      where: { id },
+      include: {
+        createdBy: { select: { name: true } },
+        updatedBy: { select: { name: true } },
+        events: {
+          orderBy: { at: "desc" },
+          take: 30,
+          include: { user: { select: { name: true } } },
+        },
       },
-    },
-  });
+    }),
+    listCatalogProducts(),
+  ]);
   if (!quote) notFound();
 
   const initial = quoteRowToPayload(quote);
@@ -47,6 +51,7 @@ export default async function QuotePage({
           at: e.at.toISOString(),
           user: e.user,
         }))}
+        products={products}
       />
     </>
   );

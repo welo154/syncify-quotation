@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") || "").trim();
-  const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit") || 30)));
+  const limit = Math.min(2000, Math.max(1, Number(searchParams.get("limit") || 2000)));
 
   const products = await prisma.product.findMany({
     where: {
