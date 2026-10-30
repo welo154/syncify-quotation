@@ -5,6 +5,7 @@ import {
   updateQuoteAction,
 } from "@/app/actions/quotes";
 import { ConvertToInvoiceButton } from "@/components/ConvertToInvoiceButton";
+import { DeleteDocumentButton } from "@/components/DeleteDocumentButton";
 import { DocumentEditor } from "@/components/DocumentEditor";
 import type { CatalogProduct, QuotePayload } from "@/lib/types";
 
@@ -55,7 +56,12 @@ export function QuoteEditorClient({
       ]}
       onSave={(payload) => updateQuoteAction(id, payload as QuotePayload)}
       onPrintRecord={() => recordQuotePrintAction(id)}
-      extraActions={<ConvertToInvoiceButton quoteId={id} />}
+      extraActions={
+        <>
+          <ConvertToInvoiceButton quoteId={id} />
+          <DeleteDocumentButton kind="quote" id={id} label={initial.quoteNumber} />
+        </>
+      }
       products={products}
     />
   );

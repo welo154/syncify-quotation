@@ -64,6 +64,7 @@ model Quote {
   events    QuoteEvent[]
   invoices  Invoice[]
 
+  @@unique([quoteNumber])
   @@index([createdAt])
   @@index([clientName])
   @@schema("studio")
@@ -121,8 +122,18 @@ model Invoice {
   updatedBy   User           @relation("InvoiceUpdatedBy", fields: [updatedById], references: [id])
   events      InvoiceEvent[]
 
+  @@unique([invoiceNumber])
   @@index([createdAt])
   @@index([clientName])
+  @@schema("studio")
+}
+
+model DocumentNumberCounter {
+  kind      String
+  year      Int
+  lastValue Int @default(0)
+
+  @@id([kind, year])
   @@schema("studio")
 }
 

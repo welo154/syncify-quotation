@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { CreateInvoiceButton } from "@/components/CreateInvoiceButton";
+import { DeleteDocumentButton } from "@/components/DeleteDocumentButton";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 
@@ -34,12 +35,13 @@ export default async function InvoicesPage() {
               <th>Created by</th>
               <th>Last edited</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colSpan={5} className="muted">
+                <td colSpan={6} className="muted">
                   No invoices yet. Create one or convert from a quotation.
                 </td>
               </tr>
@@ -61,6 +63,18 @@ export default async function InvoicesPage() {
                   </td>
                   <td>
                     <span className={`status-pill ${inv.status}`}>{inv.status}</span>
+                  </td>
+                  <td>
+                    <div className="row-actions">
+                      <Link className="button outline" href={`/invoices/${inv.id}`}>
+                        Open
+                      </Link>
+                      <DeleteDocumentButton
+                        kind="invoice"
+                        id={inv.id}
+                        label={inv.invoiceNumber}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))

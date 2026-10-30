@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { blankQuote, ensureInstallationSection, normalizeDocument } from "@/lib/document";
+import { allocateDocumentNumber } from "@/lib/document-numbers";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { computeTotals } from "@/lib/totals";
@@ -65,9 +66,11 @@ function toPayload(row: {
 export async function createQuoteAction() {
   const user = await requireUser();
   const blank = blankQuote();
+  const quoteNumber = await allocateDocumentNumber("quote");
   const quote = await prisma.quote.create({
     data: {
       ...blank,
+      quoteNumber,
       sections: blank.sections as unknown as Prisma.InputJsonValue,
       createdById: user.id,
       updatedById: user.id,
@@ -87,6 +90,9 @@ export async function createQuoteAction() {
 
 export async function updateQuoteAction(id: string, payload: QuotePayload) {
   const user = await requireUser();
+  const existing = await prisma.quote.findUnique({ where: { id } });
+  if (!existing) return { error: "Quotation not found." };
+
   const data = normalizeDocument(payload);
   const totals = computeTotals(data);
 
@@ -97,7 +103,8 @@ export async function updateQuoteAction(id: string, payload: QuotePayload) {
   await prisma.quote.update({
     where: { id },
     data: {
-      quoteNumber: data.quoteNumber,
+      // Numbers are server-owned and immutable after create.
+      quoteNumber: existing.quoteNumber,
       quoteDate: data.quoteDate,
       validUntil: data.validUntil,
       currency: data.currency,
@@ -130,7 +137,7 @@ export async function updateQuoteAction(id: string, payload: QuotePayload) {
       quoteId: id,
       userId: user.id,
       action: "updated",
-      summary: `Updated ${data.quoteNumber} · ${data.clientName || "Untitled"}`,
+      summary: `Updated ${existing.quoteNumber} · ${data.clientName || "Untitled"}`,
     },
   });
 
@@ -163,8 +170,11 @@ export async function recordQuotePrintAction(id: string) {
 
 export async function deleteQuoteAction(id: string) {
   await requireUser();
+  const existing = await prisma.quote.findUnique({ where: { id } });
+  if (!existing) return { error: "Quotation not found." };
   await prisma.quote.delete({ where: { id } });
   revalidatePath("/");
+  revalidatePath(`/quotes/${id}`);
   return { ok: true };
 }
 

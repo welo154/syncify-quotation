@@ -34,7 +34,8 @@ export function ensureInstallationSection(sections: Section[]): Section[] {
 export function blankQuote(): QuotePayload {
   const today = isoDate();
   return {
-    quoteNumber: `SYN-${today.slice(0, 4)}-001`,
+    // Assigned atomically on create — never hardcode SYN-YYYY-001.
+    quoteNumber: "",
     quoteDate: today,
     validUntil: daysLater(today, 7),
     currency: "EGP",
@@ -64,7 +65,8 @@ export function blankQuote(): QuotePayload {
 export function blankInvoice(): InvoicePayload {
   const today = isoDate();
   return {
-    invoiceNumber: `INV-${today.slice(0, 4)}-001`,
+    // Assigned atomically on create — never hardcode INV-YYYY-001.
+    invoiceNumber: "",
     invoiceDate: today,
     dueDate: daysLater(today, 14),
     currency: "EGP",
@@ -96,7 +98,8 @@ export function quoteToInvoice(quote: QuotePayload & { id?: string }): InvoicePa
   const today = isoDate();
   return {
     ...blankInvoice(),
-    invoiceNumber: `INV-${today.slice(0, 4)}-${String(Date.now()).slice(-4)}`,
+    // Invoice number is allocated when the invoice row is created.
+    invoiceNumber: "",
     invoiceDate: today,
     dueDate: daysLater(today, 14),
     currency: quote.currency,

@@ -8,6 +8,7 @@ import {
   normalizeDocument,
   quoteToInvoice,
 } from "@/lib/document";
+import { allocateDocumentNumber } from "@/lib/document-numbers";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { computeTotals } from "@/lib/totals";
@@ -73,9 +74,10 @@ function toPayload(row: {
 export async function createInvoiceAction() {
   const user = await requireUser();
   const blank = blankInvoice();
+  const invoiceNumber = await allocateDocumentNumber("invoice");
   const invoice = await prisma.invoice.create({
     data: {
-      invoiceNumber: blank.invoiceNumber,
+      invoiceNumber,
       invoiceDate: blank.invoiceDate,
       dueDate: blank.dueDate,
       currency: blank.currency,
@@ -124,10 +126,11 @@ export async function createInvoiceFromQuoteAction(quoteId: string) {
     ...quoteRowToPayload(quote),
     id: quote.id,
   } as QuotePayload & { id: string });
+  const invoiceNumber = await allocateDocumentNumber("invoice");
 
   const invoice = await prisma.invoice.create({
     data: {
-      invoiceNumber: payload.invoiceNumber,
+      invoiceNumber,
       invoiceDate: payload.invoiceDate,
       dueDate: payload.dueDate,
       currency: payload.currency,
@@ -172,6 +175,9 @@ export async function createInvoiceFromQuoteAction(quoteId: string) {
 
 export async function updateInvoiceAction(id: string, payload: InvoicePayload) {
   const user = await requireUser();
+  const existing = await prisma.invoice.findUnique({ where: { id } });
+  if (!existing) return { error: "Invoice not found." };
+
   const data = normalizeDocument(payload);
   const totals = computeTotals(data);
 
@@ -182,7 +188,8 @@ export async function updateInvoiceAction(id: string, payload: InvoicePayload) {
   await prisma.invoice.update({
     where: { id },
     data: {
-      invoiceNumber: data.invoiceNumber,
+      // Numbers are server-owned and immutable after create.
+      invoiceNumber: existing.invoiceNumber,
       invoiceDate: data.invoiceDate,
       dueDate: data.dueDate,
       currency: data.currency,
@@ -215,7 +222,7 @@ export async function updateInvoiceAction(id: string, payload: InvoicePayload) {
       invoiceId: id,
       userId: user.id,
       action: "updated",
-      summary: `Updated ${data.invoiceNumber} · ${data.clientName || "Untitled"}`,
+      summary: `Updated ${existing.invoiceNumber} · ${data.clientName || "Untitled"}`,
     },
   });
 
@@ -248,8 +255,11 @@ export async function recordInvoicePrintAction(id: string) {
 
 export async function deleteInvoiceAction(id: string) {
   await requireUser();
+  const existing = await prisma.invoice.findUnique({ where: { id } });
+  if (!existing) return { error: "Invoice not found." };
   await prisma.invoice.delete({ where: { id } });
   revalidatePath("/invoices");
+  revalidatePath(`/invoices/${id}`);
   return { ok: true };
 }
 

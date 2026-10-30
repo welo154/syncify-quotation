@@ -4,6 +4,7 @@ import {
   recordInvoicePrintAction,
   updateInvoiceAction,
 } from "@/app/actions/invoices";
+import { DeleteDocumentButton } from "@/components/DeleteDocumentButton";
 import { DocumentEditor } from "@/components/DocumentEditor";
 import type { CatalogProduct, InvoicePayload } from "@/lib/types";
 
@@ -53,6 +54,9 @@ export function InvoiceEditorClient({
       ]}
       onSave={(payload) => updateInvoiceAction(id, payload as InvoicePayload)}
       onPrintRecord={() => recordInvoicePrintAction(id)}
+      extraActions={
+        <DeleteDocumentButton kind="invoice" id={id} label={initial.invoiceNumber} />
+      }
       products={products}
     />
   );

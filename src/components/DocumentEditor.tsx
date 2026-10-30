@@ -272,11 +272,8 @@ export function DocumentEditor({
                 {numberLabel}
                 <input
                   value={String(state[numberField] ?? "")}
-                  onChange={(e) =>
-                    patch({ [numberField]: e.target.value } as Partial<
-                      DocumentPayload & Record<string, unknown>
-                    >)
-                  }
+                  readOnly
+                  title="Assigned automatically and cannot be edited"
                 />
               </label>
               <label>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { CreateQuoteButton } from "@/components/CreateQuoteButton";
+import { DeleteDocumentButton } from "@/components/DeleteDocumentButton";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 
@@ -34,12 +35,13 @@ export default async function QuotesPage() {
               <th>Created by</th>
               <th>Last edited</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {quotes.length === 0 ? (
               <tr>
-                <td colSpan={5} className="muted">
+                <td colSpan={6} className="muted">
                   No quotations yet. Create your first one.
                 </td>
               </tr>
@@ -61,6 +63,14 @@ export default async function QuotesPage() {
                   </td>
                   <td>
                     <span className="status-pill">{q.status}</span>
+                  </td>
+                  <td>
+                    <div className="row-actions">
+                      <Link className="button outline" href={`/quotes/${q.id}`}>
+                        Open
+                      </Link>
+                      <DeleteDocumentButton kind="quote" id={q.id} label={q.quoteNumber} />
+                    </div>
                   </td>
                 </tr>
               ))
